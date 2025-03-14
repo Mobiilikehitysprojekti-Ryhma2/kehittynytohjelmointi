@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "kehittynytohjelmointi",
-    "slug": "kehittynytohjelmointi",
+    "name": "mobi",
+    "slug": "mobi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
