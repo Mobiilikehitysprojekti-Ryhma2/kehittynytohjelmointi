@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "kehittynytohjelmointi",
-    "slug": "kehittynytohjelmointi",
+    "name": "charts",
+    "slug": "charts",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
