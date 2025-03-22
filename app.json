@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "charts",
-    "slug": "charts",
+    "name": "piechart",
+    "slug": "piechart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
