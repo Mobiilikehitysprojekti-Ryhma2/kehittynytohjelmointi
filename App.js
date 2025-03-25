@@ -1,11 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, SafeAreaView, Button, view, Image } from 'react-native';
 import MapView, { Camera } from 'react-native-maps';
 import * as Location from 'expo-location';
-import {Marker} from 'react-native-maps';
+import {Marker} from 'react-native-maps'
+import Chartscreen from './Screens/Chartscreen';
+import { FAB } from 'react-native-paper';
+
 
 export default function App() {
+const URL = 'https//api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1'
 
 //https://api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1
 //säätiedot tuolta
@@ -18,6 +22,8 @@ const [camera, setCamera] = useState('')
       })
       
       useEffect(() => {
+        
+
       (async() =>{
         getUserPosition()
       })()
@@ -40,11 +46,12 @@ const [camera, setCamera] = useState('')
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
+        
           setCamera({
 ...camera,
 pitch: 90,
 heading: 0,
-          zoom: 20,
+          zoom: 10,
 
           })
  
@@ -53,34 +60,64 @@ heading: 0,
         }
       };
  
-
-  return (
-    
-       <SafeAreaView>
-<MapView
-        style={styles.map}
-        mapType="hybrid"
-        camera={{
-          center: {
-            latitude: 65.010,
-            longitude: 65.010,
-          },
-          pitch: 90, 
-          heading: 0,
-          zoom: 15, 
-        }}
-        showsUserLocation={true}
-        followUserLocation={true}
-        showsCompass={false}
-        showsBuildings={true}
-        pitchEnabled={false}
-      />
-      
-</SafeAreaView>
-
-    
-  );
+const fetchweather = async() => {
+try {
+  const response = await fetch(URL)
+  if (response.ok) {
+    const json = await response.json()
+    const weather = json.contents.weather[0].weather
+    console.log(weather)
+  } else {
+    console.log(weather)
+  }
+} catch (error) {
+  console.log(error)
 }
+
+
+}
+
+
+
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <MapView
+      style={{ flex: 1 }} 
+      mapType="hybrid"
+      camera={{
+        center: {
+          latitude: 65.010,
+          longitude: 65.010,
+        },
+        pitch: 90,
+        heading: 0,
+        zoom: 15,
+      }}
+      showsUserLocation={true}
+      followUserLocation={true}
+      showsCompass={false}
+      showsBuildings={true}
+      pitchEnabled={false}
+    >
+      <Marker  coordinate={{
+        latitude: location.latitude,
+        longitude: location.longitude
+        }}
+        title="Oma sijainti"
+        >
+<Image source={require('./marker.png')} style={{height: 40, width: 40 }} />
+
+</Marker>
+    </MapView>
+    <FAB 
+          icon="plus" 
+          styles={styles.fab}
+      />
+   
+  </SafeAreaView>
+);
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -91,5 +128,10 @@ const styles = StyleSheet.create({
   }, map: {
     height: '100%',
     width: '100%'
+  }, fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    margin: 16
   }
 });
