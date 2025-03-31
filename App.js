@@ -3,9 +3,11 @@ import { StyleSheet, SafeAreaView, Image } from 'react-native';
 import MapView, { Camera } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Marker } from 'react-native-maps'
-import { FAB } from 'react-native-paper';
+import { FAB, RadioButton } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import uuid from "react-native-uuid"
+import MainAppBar from './components/MainAppBar';
+import SettingsModal from './components/SettingsModal';
 
 
 export default function App() {
@@ -16,6 +18,8 @@ export default function App() {
   const [camera, setCamera] = useState('')
 
   const [markers, setMarkers] = useState([])
+  const [modalVisible, setModalVisible] = useState(false)
+  const [mapType, setMapType] = useState("hybrid")
 
   const [location, setLocation] = useState({
     latitude: 65.0100,
@@ -24,8 +28,8 @@ export default function App() {
     longitudeDelta: 0.0421,
   })
 
-  useEffect(() => {
 
+  useEffect(() => {
 
     (async () => {
       getUserPosition()
@@ -80,70 +84,73 @@ export default function App() {
 
   }
 
-const addNewMarker = (e) => {
-  const coords = e.nativeEvent.coordinate
-  const id = uuid.v4()
-  setMarkers([...markers, {id:id,latitude: coords.latitude, longitude: coords.longitude}])
-  console.log(markers)
-}
+  const addNewMarker = (e) => {
+    const coords = e.nativeEvent.coordinate
+    const id = uuid.v4()
+    setMarkers([...markers, { id: id, latitude: coords.latitude, longitude: coords.longitude }])
+  }
 
-const removeThisMarker = (id) => {
-  setMarkers(markers.filter(marker => marker.id !== id));
-}
+  const removeThisMarker = (id) => {
+    setMarkers(markers.filter(marker => marker.id !== id));
+  }
 
   return (
     <SafeAreaProvider>
-    <SafeAreaView style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
-        mapType="hybrid"
-        onLongPress={addNewMarker}
-        camera={{
-          center: {
-            latitude: location.latitude,
-            longitude: location.longitude,
-          },
-          pitch: 90,
-          heading: 0,
-          zoom: 15,
-        }}
-        showsUserLocation={true}
-        followUserLocation={true}
-        showsCompass={false}
-        showsBuildings={true}
-        pitchEnabled={false}
-      >
-        <Marker coordinate={{
-          latitude: location.latitude,
-          longitude: location.longitude
-        }}
-          title="Oma sijainti"
-        >
-          <Image source={require('./marker.png')} style={{ height: 40, width: 40 }} />
-
-        </Marker>
-        {markers && markers.map((item,index) => 
-        <Marker
-          key={item.id}
-          title={"Marker " + index}
-          coordinate={{
-            latitude: item.latitude,
-            longitude: item.longitude
+      <SafeAreaView style={{ flex: 1 }}>
+        <MapView
+          style={{ flex: 1 }}
+          mapType={mapType}
+          onLongPress={addNewMarker}
+          camera={{
+            center: {
+              latitude: location.latitude,
+              longitude: location.longitude,
+            },
+            pitch: 90,
+            heading: 0,
+            zoom: 15,
           }}
-          onPress={() => removeThisMarker(item.id)}
-        />)}
+          showsUserLocation={true}
+          followUserLocation={true}
+          showsCompass={false}
+          showsBuildings={true}
+          pitchEnabled={false}
+        >
+          <Marker coordinate={{
+            latitude: location.latitude,
+            longitude: location.longitude
+          }}
+            title="Oma sijainti"
+          >
+            <Image source={require('./marker.png')} style={{ height: 40, width: 40 }} />
 
-      </MapView>
+          </Marker>
+          {markers && markers.map((item, index) =>
+            <Marker
+              key={item.id}
+              title={"Marker " + index}
+              coordinate={{
+                latitude: item.latitude,
+                longitude: item.longitude
+              }}
+              onPress={() => removeThisMarker(item.id)}
+            />)}
 
-      <FAB
-        icon="map-marker-remove-outline"
-        styles={styles.fab}
-        onPress={() => setMarkers([])}
-      />
-    </SafeAreaView>
+
+        </MapView>
+          <SettingsModal
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            setMapType={setMapType} 
+            currentMapType={mapType}
+            />
+
+        <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} />
+
+      </SafeAreaView>
     </SafeAreaProvider>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
