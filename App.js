@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { StyleSheet, SafeAreaView, Image } from 'react-native';
-import MapView, { Camera } from 'react-native-maps';
+import { StyleSheet, SafeAreaView, Image, Text, View, TouchableOpacity } from 'react-native';
+import MapView, { Camera, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Marker } from 'react-native-maps'
 import { FAB, RadioButton } from 'react-native-paper';
@@ -8,7 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import uuid from "react-native-uuid"
 import MainAppBar from './components/MainAppBar';
 import SettingsModal from './components/SettingsModal';
-
+import { getDistance } from 'geolib';
 
 export default function App() {
   const URL = 'https//api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1'
@@ -16,14 +16,16 @@ export default function App() {
   //https://api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1
   //säätiedot tuolta
   const [camera, setCamera] = useState('')
-
+  const [distance, setDistance] = useState(0);
   const [markers, setMarkers] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [mapType, setMapType] = useState("hybrid")
 
+
+
   const [location, setLocation] = useState({
     latitude: 65.0100,
-    longitude: 65.0100,
+    longitude: 25.4723,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   })
@@ -88,11 +90,44 @@ export default function App() {
     const coords = e.nativeEvent.coordinate
     const id = uuid.v4()
     setMarkers([...markers, { id: id, latitude: coords.latitude, longitude: coords.longitude }])
+   // console.log(markers) 
   }
 
   const removeThisMarker = (id) => {
     setMarkers(markers.filter(marker => marker.id !== id));
   }
+
+  const calculateDistance = () => {
+    if (markers.length > 0) {
+      const userLocation = { latitude: location.latitude, longitude: location.longitude };
+
+      let totalDistance = 0;
+      markers.forEach(marker => {
+       // console.log('error:', userLocation); 
+      //  console.log('error2:', markers);
+        if (marker.latitude && marker.longitude) {
+          totalDistance += getDistance(userLocation, { latitude: marker.latitude, longitude: marker.longitude });
+        } else {
+          console.log('error', markers); 
+        }
+      });
+
+      setDistance(totalDistance / 1000);
+    }
+  };
+
+  useEffect(() => {
+    calculateDistance();
+  }, [markers, location]);
+
+
+
+
+
+
+
+
+
 
   return (
     <SafeAreaProvider>
@@ -135,7 +170,16 @@ export default function App() {
               }}
               onPress={() => removeThisMarker(item.id)}
             />)}
-
+{markers.length > 0 && (
+            <Polyline
+              coordinates={[
+                { latitude: location.latitude, longitude: location.longitude },
+                ...markers.map(marker => ({ latitude: marker.latitude, longitude: marker.longitude }))
+              ]}
+              strokeColor="red"
+              strokeWidth={6}
+            />
+          )}
 
         </MapView>
           <SettingsModal
@@ -146,9 +190,15 @@ export default function App() {
             />
 
         <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} />
+        <TouchableOpacity style={[styles.bubble, styles.button]}>
+            <Text style={styles.bottomBarContent}>
+              {distance.toFixed(2)} km
+            </Text>
+          </TouchableOpacity>
 
       </SafeAreaView>
     </SafeAreaProvider>
+
   )
 }
 
