@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         padding: 20,
         alignItems: "center",
-        width: 250
+        width: 250,
+        borderRadius: 10,
     },
     modalText: {
         fontSize: 18,

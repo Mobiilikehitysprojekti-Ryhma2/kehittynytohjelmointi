@@ -1,49 +1,49 @@
-import { useEffect, useState, useRef } from 'react';
-import { StyleSheet, SafeAreaView, Image, Text, View, TouchableOpacity } from 'react-native';
-import MapView, { Camera, Polyline } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { Marker } from 'react-native-maps'
-import { FAB, RadioButton } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import uuid from "react-native-uuid"
-import MainAppBar from './components/MainAppBar';
-import SettingsModal from './components/SettingsModal';
-import { getDistance } from 'geolib';
+import { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  StatusBar,
+} from "react-native";
+import MapView, { Polyline, Marker } from "react-native-maps";
+import * as Location from "expo-location";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import uuid from "react-native-uuid";
+import MainAppBar from "./components/MainAppBar";
+import SettingsModal from "./components/SettingsModal";
+import { getDistance } from "geolib";
 
 export default function App() {
-  const URL = 'https//api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1'
+  const URL =
+    "https//api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1";
 
   //https://api.open-meteo.com/v1/forecast?latitude=65.01&longitude=65.01&hourly=temperature_2m,weather_code&forecast_days=1
   //säätiedot tuolta
-  const [camera, setCamera] = useState('')
+  const [camera, setCamera] = useState("");
   const [distance, setDistance] = useState(0);
-  const [markers, setMarkers] = useState([])
-  const [modalVisible, setModalVisible] = useState(false)
-  const [mapType, setMapType] = useState("hybrid")
-
-
+  const [markers, setMarkers] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [mapType, setMapType] = useState("hybrid");
 
   const [location, setLocation] = useState({
-    latitude: 65.0100,
+    latitude: 65.01,
     longitude: 25.4723,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
-  })
-
+  });
 
   useEffect(() => {
-
     (async () => {
-      getUserPosition()
-    })()
-
-  }, [])
+      await getUserPosition();
+    })();
+  }, []);
 
   const getUserPosition = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     try {
-      if (status !== 'granted') {
-        console.log('Permission denied');
+      if (status !== "granted") {
+        console.log("Permission denied");
         return;
       }
 
@@ -61,57 +61,71 @@ export default function App() {
         pitch: 90,
         heading: 0,
         zoom: 10,
-
-      })
-
+      });
     } catch (error) {
       console.log(error);
     }
   };
 
-  const fetchweather = async () => {
+  /* const fetchweather = async () => {
     try {
-      const response = await fetch(URL)
+      const response = await fetch(URL);
       if (response.ok) {
-        const json = await response.json()
-        const weather = json.contents.weather[0].weather
-        console.log(weather)
+        const json = await response.json();
+        const weather = json.contents.weather[0].weather;
+        console.log(weather);
       } else {
-        console.log(weather)
+        console.log(weather);
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-
-
-  }
+  }; */
 
   const addNewMarker = (e) => {
-    const coords = e.nativeEvent.coordinate
-    const id = uuid.v4()
-    setMarkers([...markers, { id: id, latitude: coords.latitude, longitude: coords.longitude }])
-   // console.log(markers) 
-  }
+    const coords = e.nativeEvent.coordinate;
+    const id = uuid.v4();
+    setMarkers([
+      ...markers,
+      { id: id, latitude: coords.latitude, longitude: coords.longitude },
+    ]);
+  };
 
   const removeThisMarker = (id) => {
-    setMarkers(markers.filter(marker => marker.id !== id));
-  }
+    setMarkers(markers.filter((marker) => marker.id !== id));
+    if (markers.length <= 1) {
+      setDistance(0)
+    }
+  };
 
   const calculateDistance = () => {
     if (markers.length > 0) {
       const userLocation = { latitude: location.latitude, longitude: location.longitude };
 
       let totalDistance = 0;
-      markers.forEach(marker => {
-       // console.log('error:', userLocation); 
-      //  console.log('error2:', markers);
-        if (marker.latitude && marker.longitude) {
-          totalDistance += getDistance(userLocation, { latitude: marker.latitude, longitude: marker.longitude });
+      let firstDistance = false;
+      let nextMarker;
+      let prevMarker;
+      markers.forEach((marker) => {
+        if (!firstDistance) {
+          if (marker.latitude && marker.longitude) {
+            totalDistance += getDistance(userLocation, {
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            });
+
+            prevMarker = marker;
+            firstDistance = true;
+          } else {
+            console.log("error", markers);
+          }
         } else {
-          console.log('error', markers); 
+          if (marker.latitude && marker.longitude) {
+            totalDistance += getDistance(marker, prevMarker);
+            prevMarker = marker;
+          }
         }
       });
-
       setDistance(totalDistance / 1000);
     }
   };
@@ -120,17 +134,10 @@ export default function App() {
     calculateDistance();
   }, [markers, location]);
 
-
-
-
-
-
-
-
-
-
   return (
     <SafeAreaProvider>
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
+
       <SafeAreaView style={{ flex: 1 }}>
         <MapView
           style={{ flex: 1 }}
@@ -151,70 +158,49 @@ export default function App() {
           showsBuildings={true}
           pitchEnabled={false}
         >
-          <Marker coordinate={{
-            latitude: location.latitude,
-            longitude: location.longitude
-          }}
+          <Marker
+            coordinate={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
             title="Oma sijainti"
-          >
-            <Image source={require('./marker.png')} style={{ height: 40, width: 40 }} />
-
-          </Marker>
-          {markers && markers.map((item, index) =>
-            <Marker
-              key={item.id}
-              title={"Marker " + index}
-              coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude
-              }}
-              onPress={() => removeThisMarker(item.id)}
-            />)}
-{markers.length > 0 && (
+            opacity={0}
+          />
+          {markers &&
+            markers.map((item, index) => (
+              <Marker
+                key={item.id}
+                title={"Marker " + index}
+                coordinate={{
+                  latitude: item.latitude,
+                  longitude: item.longitude,
+                }}
+                onPress={() => removeThisMarker(item.id)}
+              />
+            ))}
+          {markers.length > 0 && (
             <Polyline
               coordinates={[
                 { latitude: location.latitude, longitude: location.longitude },
-                ...markers.map(marker => ({ latitude: marker.latitude, longitude: marker.longitude }))
+                ...markers.map((marker) => ({
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
+                })),
               ]}
               strokeColor="red"
               strokeWidth={6}
             />
           )}
-
         </MapView>
-          <SettingsModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            setMapType={setMapType} 
-            currentMapType={mapType}
-            />
+        <SettingsModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          setMapType={setMapType}
+          currentMapType={mapType}
+        />
 
-        <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} />
-        <TouchableOpacity style={[styles.bubble, styles.button]}>
-            <Text style={styles.bottomBarContent}>
-              {distance.toFixed(2)} km
-            </Text>
-          </TouchableOpacity>
-
+        <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} setDistance={setDistance} distance={distance}/>
       </SafeAreaView>
     </SafeAreaProvider>
-
-  )
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }, map: {
-    height: '100%',
-    width: '100%'
-  }, fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    margin: 16
-  }
-});
