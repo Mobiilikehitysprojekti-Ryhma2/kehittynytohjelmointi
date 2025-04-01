@@ -202,7 +202,7 @@ export default function App() {
           currentMapType={mapType}
         />
 
-        <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} />
+        <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} setDistance={setDistance} />
         <TouchableOpacity style={[styles.bubble, styles.button]}>
           <Text style={styles.bottomBarContent}>
             {distance.toFixed(2)} km

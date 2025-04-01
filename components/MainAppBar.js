@@ -8,6 +8,7 @@ export default function MainAppBar(props) {
 
     const removeAllMarkers = () => {
         props.setMarkers([])
+        props.setDistance(0)
     }
 
     const toggleModal = () => {
