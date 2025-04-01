@@ -90,7 +90,7 @@ export default function App() {
     const coords = e.nativeEvent.coordinate
     const id = uuid.v4()
     setMarkers([...markers, { id: id, latitude: coords.latitude, longitude: coords.longitude }])
-   // console.log(markers) 
+    // console.log(markers) 
   }
 
   const removeThisMarker = (id) => {
@@ -102,17 +102,30 @@ export default function App() {
       const userLocation = { latitude: location.latitude, longitude: location.longitude };
 
       let totalDistance = 0;
+      let firstDistance = false
+      let nextMarker
+      let prevMarker
       markers.forEach(marker => {
-       // console.log('error:', userLocation); 
-      //  console.log('error2:', markers);
-        if (marker.latitude && marker.longitude) {
-          totalDistance += getDistance(userLocation, { latitude: marker.latitude, longitude: marker.longitude });
+        // console.log('error:', userLocation); 
+        //  console.log('error2:', markers);
+        if (!firstDistance) {
+          if (marker.latitude && marker.longitude) {
+            totalDistance += getDistance(userLocation, { latitude: marker.latitude, longitude: marker.longitude });
+
+            prevMarker = marker
+            firstDistance = true
+          } else {
+            console.log('error', markers);
+          }
         } else {
-          console.log('error', markers); 
-        }
-      });
+          if (marker.latitude && marker.longitude) {
+            totalDistance += getDistance(marker, prevMarker)
+            prevMarker = marker
+          }}
+        })
 
       setDistance(totalDistance / 1000);
+      
     }
   };
 
@@ -170,7 +183,7 @@ export default function App() {
               }}
               onPress={() => removeThisMarker(item.id)}
             />)}
-{markers.length > 0 && (
+          {markers.length > 0 && (
             <Polyline
               coordinates={[
                 { latitude: location.latitude, longitude: location.longitude },
@@ -182,19 +195,19 @@ export default function App() {
           )}
 
         </MapView>
-          <SettingsModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            setMapType={setMapType} 
-            currentMapType={mapType}
-            />
+        <SettingsModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          setMapType={setMapType}
+          currentMapType={mapType}
+        />
 
         <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} />
         <TouchableOpacity style={[styles.bubble, styles.button]}>
-            <Text style={styles.bottomBarContent}>
-              {distance.toFixed(2)} km
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.bottomBarContent}>
+            {distance.toFixed(2)} km
+          </Text>
+        </TouchableOpacity>
 
       </SafeAreaView>
     </SafeAreaProvider>
