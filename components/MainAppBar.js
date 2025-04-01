@@ -3,6 +3,7 @@ import { StyleSheet, Text } from "react-native";
 import { Appbar } from "react-native-paper";
 
 export default function MainAppBar(props) {
+
   const removeAllMarkers = () => {
     props.setMarkers([]);
     props.setDistance(0)
@@ -29,3 +30,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
   }
 });
+

@@ -83,6 +83,7 @@ export default function App() {
   }; */
 
   const addNewMarker = (e) => {
+
     const coords = e.nativeEvent.coordinate;
     const id = uuid.v4();
     setMarkers([
@@ -90,6 +91,7 @@ export default function App() {
       { id: id, latitude: coords.latitude, longitude: coords.longitude },
     ]);
   };
+
 
   const removeThisMarker = (id) => {
     setMarkers(markers.filter((marker) => marker.id !== id));
@@ -103,6 +105,7 @@ export default function App() {
       const userLocation = { latitude: location.latitude, longitude: location.longitude };
 
       let totalDistance = 0;
+
       let firstDistance = false;
       let nextMarker;
       let prevMarker;
@@ -126,7 +129,9 @@ export default function App() {
           }
         }
       });
+
       setDistance(totalDistance / 1000);
+      
     }
   };
 
@@ -164,6 +169,7 @@ export default function App() {
               longitude: location.longitude,
             }}
             title="Oma sijainti"
+
             opacity={0}
           />
           {markers &&
@@ -178,6 +184,7 @@ export default function App() {
                 onPress={() => removeThisMarker(item.id)}
               />
             ))}
+
           {markers.length > 0 && (
             <Polyline
               coordinates={[
@@ -199,7 +206,9 @@ export default function App() {
           currentMapType={mapType}
         />
 
+
         <MainAppBar setMarkers={setMarkers} setModalVisible={setModalVisible} setDistance={setDistance} distance={distance}/>
+
       </SafeAreaView>
     </SafeAreaProvider>
   );
