@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+
 import {
   StyleSheet,
   SafeAreaView,
@@ -13,6 +13,20 @@ import uuid from "react-native-uuid";
 import MainAppBar from "./components/MainAppBar";
 import SettingsModal from "./components/SettingsModal";
 import { getDistance } from "geolib";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  deleteUser,
+  createUserWithEmailAndPassword,
+  setDoc,
+  doc,
+  firestore,
+  deleteDoc,
+} from "./firebase/Config";
+import { Button } from "react-native-paper";
 
 export default function App() {
   const URL =
@@ -99,6 +113,41 @@ export default function App() {
       setDistance(0)
     }
   };
+
+
+
+  const sendMarkersToFirebase = async () => {
+    try {
+      const markersCollectionRef = firestore().collection('markers');
+      const markerPromises = markers.map((marker) => {
+        return markersCollectionRef.add({
+          id: marker.id,
+          latitude: marker.latitude,
+          longitude: marker.longitude,
+          timestamp: firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      await Promise.all(markerPromises);
+
+      setMarkers([]); //reset
+    } catch (error) {
+      console.error('Error no connection: ', error);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const calculateDistance = () => {
     if (markers.length > 0) {
@@ -198,7 +247,9 @@ export default function App() {
               strokeWidth={6}
             />
           )}
+         
         </MapView>
+        <Button title="Send" onPress={sendMarkersToFirebase} />
         <SettingsModal
           modalVisible={modalVisible}
           setModalVisible={setModalVisible}
