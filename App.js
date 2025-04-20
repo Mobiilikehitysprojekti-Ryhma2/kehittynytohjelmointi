@@ -1,111 +1,78 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image, ScrollView, Dimensions } from 'react-native';
-import { Svg, Text as SvgText, Line } from 'react-native-svg';
-import * as scale from 'd3-scale';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
-// Hedelmäkuvat
-const images = {
-  apple: require('./assets/apple.png'),
-  banana: require('./assets/banana.png'),
-  grape: require('./assets/grape.png'),
-  orange: require('./assets/orange.png'),
-  strawberry: require('./assets/strawberry.png'),
-};
+// Eratostheneen siivilä alkulukujen löytämiseksi
+function sieveOfEratosthenes(limit) {
+  const primes = Array(limit + 1).fill(true);
+  primes[0] = primes[1] = false;
+  for (let i = 2; i * i <= limit; i++) {
+    if (primes[i]) {
+      for (let j = i * i; j <= limit; j += i) {
+        primes[j] = false;
+      }
+    }
+  }
+  return primes.map((isPrime, index) => isPrime ? index : null).filter(Boolean);
+}
 
-// Data: sokeri ja kuitu
-const data = [
-  { name: 'Omena', sugar: 10, fiber: 2.1, image: 'apple' },
-  { name: 'Banaani', sugar: 12, fiber: 2.6, image: 'banana' },
-  { name: 'Rypäle', sugar: 16, fiber: 0.9, image: 'grape' },
-  { name: 'Appelsiini', sugar: 9, fiber: 2.4, image: 'orange' },
-  { name: 'Mansikka', sugar: 4.9, fiber: 2.0, image: 'strawberry' },
-];
+// Stem and Leaf -kuvaajan generoiminen
+function generateStemAndLeaf(primes) {
+  const stems = {};
 
-// Määritellään näytön leveys
-const screenWidth = Dimensions.get('window').width;
-const chartWidth = screenWidth - 40;
-const chartHeight = 300;
-const margin = 40;
+  primes.forEach((prime) => {
+    const stem = Math.floor(prime / 10); // Kymmenet
+    const leaf = prime % 10; // Ykköset
+    if (!stems[stem]) stems[stem] = [];
+    stems[stem].push(leaf);
+  });
 
-const maxSugar = Math.ceil(Math.max(...data.map(d => d.sugar)) + 2);
-const maxFiber = Math.ceil(Math.max(...data.map(d => d.fiber)) + 1);
+  return stems;
+}
 
-const xScale = scale.scaleLinear().domain([0, maxSugar]).range([margin, chartWidth - margin]);
-const yScale = scale.scaleLinear().domain([0, maxFiber]).range([chartHeight - margin, margin]);
-
+// Stem and Leaf -kuvaajan komponentti
 export default function App() {
+  const primes = sieveOfEratosthenes(100); // Alkuluvut 1-100
+  const stemAndLeaf = generateStemAndLeaf(primes);
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Text style={styles.title}>Hedelmiä: Sokeri ja Kuitu</Text>
-
-      <View style={styles.chartContainer}>
-        <Svg width={chartWidth} height={chartHeight}>
-          {/* X- ja Y-akseli */}
-          <Line x1={margin} y1={chartHeight - margin} x2={chartWidth - margin} y2={chartHeight - margin} stroke="black" />
-          <Line x1={margin} y1={margin} x2={margin} y2={chartHeight - margin} stroke="black" />
-
-          {/* Akselin nimet */}
-          <SvgText x={chartWidth / 2} y={chartHeight - 5} textAnchor="middle" fontSize="12">Sokeri (g / 100g)</SvgText>
-          <SvgText
-          x={margin - 30}
-          y={chartHeight / 2}
-          fontSize="12"
-          textAnchor="middle"
-          transform={`rotate(-90, ${margin - 30}, ${chartHeight / 2})`}
-          >Kuitu (g / 100g)
-          </SvgText>
-
-
-          {/* Akselin numerot */}
-          {[0, 5, 10, 15].map(v => (
-            <SvgText key={`x-${v}`} x={xScale(v)} y={chartHeight - margin + 15} fontSize="10" textAnchor="middle">{v}</SvgText>
-          ))}
-          {[0, 1, 2, 3, 4].map(v => (
-            <SvgText key={`y-${v}`} x={margin - 10} y={yScale(v) + 4} fontSize="10" textAnchor="end">{v}</SvgText>
-          ))}
-        </Svg>
-
-        {/* Kuvadatat */}
-        {data.map((item, index) => {
-          const x = xScale(item.sugar);
-          const y = yScale(item.fiber);
-          return (
-            <Image
-              key={index}
-              source={images[item.image]}
-              style={{
-                position: 'absolute',
-                left: x - 12,
-                top: y - 12,
-                width: 24,
-                height: 24,
-              }}
-            />
-          );
-        })}
-      </View>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Stem and Leaf -kuvaaja (Alkuluvut 1-100)</Text>
+      {Object.keys(stemAndLeaf).map((stem) => (
+        <View key={stem} style={styles.row}>
+          <Text style={styles.stem}>{stem} |</Text>
+          <Text style={styles.leaves}>
+            {stemAndLeaf[stem].join(' ')}
+          </Text>
+        </View>
+      ))}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 60,
+  container: {
+    flex: 1,
+    paddingTop: 40,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
   },
-  chartContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    height: 320,
+  row: {
+    flexDirection: 'row',
+    marginVertical: 5,
+  },
+  stem: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    width: 40,
+  },
+  leaves: {
+    fontSize: 16,
+    color: '#333',
   },
 });
