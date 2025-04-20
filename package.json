@@ -20,7 +20,8 @@
     "react-native": "0.76.7",
     "react-native-gifted-charts": "^1.4.58",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-svg": "15.8.0"
+    "react-native-svg": "15.8.0",
+    "@expo/vector-icons": "^14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
